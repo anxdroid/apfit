@@ -133,7 +133,8 @@ public class BooksSample {
         + URLEncoder.encode(query, "UTF-8"));
   }
 
-  public static void main(String[] args) {
+  //public static void main(String[] args) {
+  public static void getBooks(String[] args) {
     JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
     try {
       // Verify command line parameters.
