@@ -30,6 +30,7 @@ dependencies {
     compile 'com.google.apis:google-api-services-fitness:v1-rev27-1.22.0'
     compile 'com.google.apis:google-api-services-books:v1-rev92-1.22.0'
     compile group: 'com.healthmarketscience.jackcess', name: 'jackcess', version: '2.1.8'
+    compile group: 'com.google.oauth-client', name: 'google-oauth-client-jetty', version: '1.22.0'
     
     
 }
