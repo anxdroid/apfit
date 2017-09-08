@@ -10,6 +10,7 @@ import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
@@ -51,6 +52,9 @@ public class MDBOpener {
 	private static final String AUTHORIZATION_SERVER_URL = "https://api.dailymotion.com/oauth/authorize";
 	
 	private static final String APPLICATION_NAME = "Test Fitness";
+	
+	static String access_token = "xxxx";
+	static String refreshToken = "yyyyy";
 
 	/** Authorizes the installed application to access user's protected data. */
 	private static Credential authorize() throws Exception {
@@ -65,6 +69,32 @@ public class MDBOpener {
 		LocalServerReceiver receiver = new LocalServerReceiver.Builder().setHost(OAuth2ClientCredentials.DOMAIN)
 				.setPort(OAuth2ClientCredentials.PORT).build();
 		return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+	}
+	
+	private static Credential authorize2() {
+	    try {
+
+	        GoogleCredential credential = 
+	            new GoogleCredential.Builder()
+	                .setTransport(HTTP_TRANSPORT)
+	                .setJsonFactory(JSON_FACTORY)
+	                .setClientSecrets(OAuth2ClientCredentials.API_KEY, OAuth2ClientCredentials.API_SECRET).build();
+	        credential.setAccessToken(access_token);
+	        credential.setRefreshToken(refreshToken);
+	        //GoogleCredential
+	        /*
+	        Analytics analytics = Analytics.builder(HTTP_TRANSPORT, JSON_FACTORY)
+	            .setApplicationName(APPLICATION_NAME)
+	            .setHttpRequestInitializer(credential)
+	            .build();
+
+	        Accounts accounts = analytics.management().accounts().list().execute();
+	        */
+	        return credential;
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return null;
 	}
 
 	private static void run(HttpRequestFactory requestFactory) throws IOException {
