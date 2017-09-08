@@ -2,6 +2,8 @@ package it.paoletti.mdbhandling;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.security.GeneralSecurityException;
 import java.util.Arrays;
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
@@ -10,7 +12,9 @@ import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
+import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
@@ -50,11 +54,11 @@ public class MDBOpener {
 
 	private static final String TOKEN_SERVER_URL = "https://api.dailymotion.com/oauth/token";
 	private static final String AUTHORIZATION_SERVER_URL = "https://api.dailymotion.com/oauth/authorize";
-	
+
 	private static final String APPLICATION_NAME = "Test Fitness";
-	
+
 	static String access_token = "xxxx";
-	static String refreshToken = "yyyyy";
+	static String REFRESH_TOKEN = "yyyyy";
 
 	/** Authorizes the installed application to access user's protected data. */
 	private static Credential authorize() throws Exception {
@@ -70,31 +74,37 @@ public class MDBOpener {
 				.setPort(OAuth2ClientCredentials.PORT).build();
 		return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
 	}
-	
+
 	private static Credential authorize2() {
-	    try {
+		try {
 
-	        GoogleCredential credential = 
-	            new GoogleCredential.Builder()
-	                .setTransport(HTTP_TRANSPORT)
-	                .setJsonFactory(JSON_FACTORY)
-	                .setClientSecrets(OAuth2ClientCredentials.API_KEY, OAuth2ClientCredentials.API_SECRET).build();
-	        credential.setAccessToken(access_token);
-	        credential.setRefreshToken(refreshToken);
-	        //GoogleCredential
-	        /*
-	        Analytics analytics = Analytics.builder(HTTP_TRANSPORT, JSON_FACTORY)
-	            .setApplicationName(APPLICATION_NAME)
-	            .setHttpRequestInitializer(credential)
-	            .build();
+			GoogleCredential credential = new GoogleCredential.Builder().setTransport(HTTP_TRANSPORT)
+					.setJsonFactory(JSON_FACTORY)
+					.setClientSecrets(OAuth2ClientCredentials.API_KEY, OAuth2ClientCredentials.API_SECRET).build();
+			credential.setAccessToken(access_token);
+			credential.setRefreshToken(REFRESH_TOKEN);
+			// GoogleCredential
+			/*
+			 * Analytics analytics = Analytics.builder(HTTP_TRANSPORT, JSON_FACTORY)
+			 * .setApplicationName(APPLICATION_NAME) .setHttpRequestInitializer(credential)
+			 * .build();
+			 * 
+			 * Accounts accounts = analytics.management().accounts().list().execute();
+			 */
+			return credential;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
-	        Accounts accounts = analytics.management().accounts().list().execute();
-	        */
-	        return credential;
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	    return null;
+	private Credential generateCredentialWithUserApprovedToken() throws IOException, GeneralSecurityException {
+		JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+		HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+		InputStreamReader inputStreamReader = new InputStreamReader(jsonFileResourceForClient.getInputStream());
+		GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, inputStreamReader);
+		return new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory)
+				.setClientSecrets(clientSecrets).build().setRefreshToken(REFRESH_TOKEN);
 	}
 
 	private static void run(HttpRequestFactory requestFactory) throws IOException {
@@ -121,16 +131,10 @@ public class MDBOpener {
 		try {
 			DATA_STORE_FACTORY = new FileDataStoreFactory(DATA_STORE_DIR);
 			final Credential credential = authorize();
-			
-			
-			Fitness service = new Fitness.Builder(
-                    HTTP_TRANSPORT, 
-                    JSON_FACTORY, 
-                    credential)
-                    .setApplicationName(APPLICATION_NAME)
-                    .build();	
-			
-			
+
+			Fitness service = new Fitness.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
+					.setApplicationName(APPLICATION_NAME).build();
+
 			HttpRequestFactory requestFactory = HTTP_TRANSPORT.createRequestFactory(new HttpRequestInitializer() {
 				@Override
 				public void initialize(HttpRequest request) throws IOException {
